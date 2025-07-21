@@ -65,6 +65,7 @@ namespace ManejoPlus.Controllers
             }
             ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", plan.PlataformaID);
             return View(plan);
+
         }
 
         // GET: Planes/Edit/5
