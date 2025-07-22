@@ -47,8 +47,24 @@ namespace ManejoPlus.Controllers
         // GET: Suscripciones/Create
         public IActionResult Create()
         {
-            ViewData["PlanID"] = new SelectList(_context.Planes, "PlanID", "Nombre");
+            var planesConPrecio = _context.Planes
+                .Select(p => new
+                {
+                    p.PlanID,
+                    Texto = p.Nombre + " - " + p.Precio.ToString("0.00") + "€"
+                })
+                .ToList();
+
+            ViewData["PlanID"] = new SelectList(planesConPrecio, "PlanID", "Texto");
             ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre");
+            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Nombre");
+            ViewData["Estado"] = new SelectList(new List<string> { "Activo", "Inactivo", "Cancelado" });
+
+            ViewBag.PreciosPlanes = _context.Planes
+                .ToDictionary(p => p.PlanID, p => p.Precio);
+            ViewBag.PlanPersonalizadoID = _context.Planes.FirstOrDefault(p => p.Nombre == "Personalizado")?.PlanID;
+
+
             return View();
         }
 
@@ -57,18 +73,32 @@ namespace ManejoPlus.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SubscriptionID,PlataformaID,PlanID,ApplicationUserId,NombrePersonalizado,Tipo,Descripcion,FechaInicio,FechaFin,Estado")] Suscripcion suscripcion)
+     
+        public async Task<IActionResult> Create([Bind("SubscriptionID,PlataformaID,PlanID,ApplicationUserId,NombrePersonalizado,Tipo,Descripcion,FechaInicio,FechaFin,Estado,Precio")] Suscripcion suscripcion)
         {
+            if (suscripcion.Precio <= 0)
+            {
+                suscripcion.Precio = _context.Planes
+                    .Where(p => p.PlanID == suscripcion.PlanID)
+                    .Select(p => p.Precio)
+                    .FirstOrDefault();
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(suscripcion);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PlanID"] = new SelectList(_context.Planes, "PlanID", "Nombre", suscripcion.PlanID);
+
+            ViewData["PlanID"] = new SelectList(GetPlanesConPrecio(suscripcion.PlanID));
             ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", suscripcion.PlataformaID);
+            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Nombre", suscripcion.ApplicationUserId);
+            ViewData["Estado"] = new SelectList(new List<string> { "Activo", "Inactivo", "Cancelado" }, suscripcion.Estado);
+
             return View(suscripcion);
         }
+
 
         // GET: Suscripciones/Edit/5
         public async Task<IActionResult> Edit(int? id)
@@ -83,8 +113,10 @@ namespace ManejoPlus.Controllers
             {
                 return NotFound();
             }
-            ViewData["PlanID"] = new SelectList(_context.Planes, "PlanID", "Nombre", suscripcion.PlanID);
+            ViewData["PlanID"] = new SelectList(GetPlanesConPrecio());
             ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", suscripcion.PlataformaID);
+            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Nombre");
+            ViewData["Estado"] = new SelectList(new List<string> { "Activo", "Inactivo", "Cancelado" }, suscripcion.Estado);
             return View(suscripcion);
         }
 
@@ -164,5 +196,18 @@ namespace ManejoPlus.Controllers
         {
             return _context.Suscripciones.Any(e => e.SubscriptionID == id);
         }
+        private SelectList GetPlanesConPrecio(int? selectedPlanId = null)
+        {
+            var planesConPrecio = _context.Planes
+                .Select(p => new
+                {
+                    p.PlanID,
+                    Texto = p.Nombre + " - " + p.Precio.ToString("0.00") + "€"
+                })
+                .ToList();
+
+            return new SelectList(planesConPrecio, "PlanID", "Texto", selectedPlanId);
+        }
+
     }
 }

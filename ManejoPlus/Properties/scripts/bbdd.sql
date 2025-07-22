@@ -35,10 +35,10 @@ CREATE TABLE Suscripciones (
     Descripcion NVARCHAR(255),
     FechaInicio DATE NOT NULL,
     FechaFin DATE NULL,
+    Precio DECIMAL(10, 2) NOT NULL,
     Estado NVARCHAR(50),
     FOREIGN KEY (PlataformaID) REFERENCES Plataformas(PlataformaID),
     FOREIGN KEY (PlanID) REFERENCES Planes(PlanID)
-    -- UserID no tiene FK formal a AspNetUsers por simplicidad en desarrollo
 );
 
 -- 4. Tabla Miembros
