@@ -46,7 +46,7 @@ namespace ManejoPlus.Controllers
         // GET: HistorialPagoes/Create
         public IActionResult Create()
         {
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId");
+            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado");
             return View();
         }
 
@@ -63,7 +63,7 @@ namespace ManejoPlus.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId", historialPago.SubscriptionID);
+            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", historialPago.SubscriptionID);
             return View(historialPago);
         }
 
@@ -80,7 +80,7 @@ namespace ManejoPlus.Controllers
             {
                 return NotFound();
             }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId", historialPago.SubscriptionID);
+            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", historialPago.SubscriptionID);
             return View(historialPago);
         }
 
@@ -116,7 +116,7 @@ namespace ManejoPlus.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId", historialPago.SubscriptionID);
+            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", historialPago.SubscriptionID);
             return View(historialPago);
         }
 

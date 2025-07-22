@@ -21,5 +21,5 @@ public class HistorialPago
     [StringLength(255)]
     public string Detalle { get; set; }
 
-    public Suscripcion Suscripcion { get; set; }
+    public Suscripcion? Suscripcion { get; set; }
 }
