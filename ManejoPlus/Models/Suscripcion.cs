@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using ManejoPlus.Models;
 
 public class Suscripcion
@@ -47,7 +48,9 @@ public class Suscripcion
     public Plan? Plan { get; set; }
     public ApplicationUser? ApplicationUser { get; set; }
 
+    [JsonIgnore]
     public ICollection<Miembro> Miembros { get; set; } = new List<Miembro>();
+    [JsonIgnore]
     public ICollection<HistorialPago> HistorialPagos { get; set; } = new List<HistorialPago>();
 
     }

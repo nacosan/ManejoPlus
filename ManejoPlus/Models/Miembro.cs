@@ -16,7 +16,7 @@ public class Miembro
 
     [EmailAddress]
     [StringLength(100)]
-    public string EmailOpcional { get; set; }
+    public string? EmailOpcional { get; set; }
 
     [Required]
     [StringLength(20)]
@@ -25,8 +25,8 @@ public class Miembro
     [Range(0, 9999.99)]
     public decimal? MontoAportado { get; set; }
 
-    public string ApplicationUserId { get; set; } 
+    public string? ApplicationUserId { get; set; } 
 
    
-    public Suscripcion Suscripcion { get; set; }
+    public Suscripcion? Suscripcion { get; set; }
 }
