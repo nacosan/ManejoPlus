@@ -1,141 +1,108 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using ManejoPlus.Models;
 
 namespace ManejoPlus.Controllers
 {
     public class PlanesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly HttpClient _httpClient;
+        private readonly ApplicationDbContext _context; 
+        private readonly string _apiUrl = "https://localhost:7149/api/Plan"; 
 
-        public PlanesController(ApplicationDbContext context)
+        public PlanesController(IHttpClientFactory httpClientFactory, ApplicationDbContext context)
         {
+            _httpClient = httpClientFactory.CreateClient();
             _context = context;
         }
 
         // GET: Planes
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Planes.Include(p => p.Plataforma);
-            return View(await applicationDbContext.ToListAsync());
+            var planes = await _httpClient.GetFromJsonAsync<List<Plan>>(_apiUrl);
+            return View(planes);
         }
 
         // GET: Planes/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var response = await _httpClient.GetAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode) return NotFound();
 
-            var plan = await _context.Planes
-                .Include(p => p.Plataforma)
-                .FirstOrDefaultAsync(m => m.PlanID == id);
-            if (plan == null)
-            {
-                return NotFound();
-            }
-
+            var plan = await response.Content.ReadFromJsonAsync<Plan>();
             return View(plan);
         }
 
         // GET: Planes/Create
         public IActionResult Create()
         {
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre");
+            CargarPlataformas();
             return View();
         }
 
         // POST: Planes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PlanID,PlataformaID,Nombre,Precio,Periodicidad,Descripcion")] Plan plan)
+        public async Task<IActionResult> Create(Plan plan)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(plan);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                CargarPlataformas(plan.PlataformaID);
+                return View(plan);
             }
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", plan.PlataformaID);
-            return View(plan);
 
+            var response = await _httpClient.PostAsJsonAsync(_apiUrl, plan);
+            if (!response.IsSuccessStatusCode)
+            {
+                ModelState.AddModelError("", "No se pudo crear el plan.");
+                CargarPlataformas(plan.PlataformaID);
+                return View(plan);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Planes/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var plan = await _httpClient.GetFromJsonAsync<Plan>($"{_apiUrl}/{id}");
+            if (plan == null) return NotFound();
 
-            var plan = await _context.Planes.FindAsync(id);
-            if (plan == null)
-            {
-                return NotFound();
-            }
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", plan.PlataformaID);
+            CargarPlataformas(plan.PlataformaID);
             return View(plan);
         }
 
         // POST: Planes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PlanID,PlataformaID,Nombre,Precio,Periodicidad,Descripcion")] Plan plan)
+        public async Task<IActionResult> Edit(int id, Plan plan)
         {
-            if (id != plan.PlanID)
+            if (id != plan.PlanID) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                CargarPlataformas(plan.PlataformaID);
+                return View(plan);
             }
 
-            if (ModelState.IsValid)
+            var response = await _httpClient.PutAsJsonAsync($"{_apiUrl}/{id}", plan);
+            if (!response.IsSuccessStatusCode)
             {
-                try
-                {
-                    _context.Update(plan);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PlanExists(plan.PlanID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("", "No se pudo actualizar el plan.");
+                CargarPlataformas(plan.PlataformaID);
+                return View(plan);
             }
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", plan.PlataformaID);
-            return View(plan);
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Planes/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var plan = await _context.Planes
-                .Include(p => p.Plataforma)
-                .FirstOrDefaultAsync(m => m.PlanID == id);
-            if (plan == null)
-            {
-                return NotFound();
-            }
+            var plan = await _httpClient.GetFromJsonAsync<Plan>($"{_apiUrl}/{id}");
+            if (plan == null) return NotFound();
 
             return View(plan);
         }
@@ -145,19 +112,18 @@ namespace ManejoPlus.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var plan = await _context.Planes.FindAsync(id);
-            if (plan != null)
+            var response = await _httpClient.DeleteAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode)
             {
-                _context.Planes.Remove(plan);
+                TempData["Error"] = "No se pudo eliminar el plan.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool PlanExists(int id)
+        private void CargarPlataformas(int? seleccionada = null)
         {
-            return _context.Planes.Any(e => e.PlanID == id);
+            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", seleccionada);
         }
     }
 }

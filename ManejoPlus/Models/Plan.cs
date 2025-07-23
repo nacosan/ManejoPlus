@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 public class Plan
 {
@@ -24,8 +25,9 @@ public class Plan
     public string Periodicidad { get; set; } 
 
     [StringLength(255)]
-    public string Descripcion { get; set; }
+    public string? Descripcion { get; set; }
 
-    public Plataforma Plataforma { get; set; }
+    public Plataforma? Plataforma { get; set; }
+    [JsonIgnore]
     public ICollection<Suscripcion> Suscripciones { get; set; } = new List<Suscripcion>();
 }

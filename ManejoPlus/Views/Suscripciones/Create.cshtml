@@ -1,4 +1,5 @@
-﻿@model Suscripcion
+﻿@using System.Text.Json
+@model Suscripcion
 
 @{
     ViewData["Title"] = "Create";
@@ -17,13 +18,19 @@
                 <select asp-for="PlataformaID" class ="form-control" asp-items="ViewBag.PlataformaID"></select>
             </div>
             <div class="form-group">
-                <label asp-for="PlanID" class="control-label"></label>
-                <select asp-for="PlanID" class ="form-control" asp-items="ViewBag.PlanID"></select>
+    <label asp-for="PlanID" class="control-label"></label>
+    <select asp-for="PlanID" class="form-control" asp-items="ViewBag.PlanID" id="planSelect"></select>
+    <span asp-validation-for="PlanID" class="text-danger"></span>
+</div>
+            <div class="form-group" id="precioGroup" style="display:none;">
+                <label asp-for="Precio" class="control-label"></label>
+                <input asp-for="Precio" class="form-control" id="precioInput" />
+                <span asp-validation-for="Precio" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="ApplicationUserId" class="control-label"></label>
-                <input asp-for="ApplicationUserId" class="form-control" />
-                <span asp-validation-for="ApplicationUserId" class="text-danger"></span>
+                <select asp-for="ApplicationUserId" class="form-control" asp-items="ViewBag.ApplicationUserId"></select>
             </div>
             <div class="form-group">
                 <label asp-for="NombrePersonalizado" class="control-label"></label>
@@ -42,19 +49,20 @@
             </div>
             <div class="form-group">
                 <label asp-for="FechaInicio" class="control-label"></label>
-                <input asp-for="FechaInicio" class="form-control" />
+                <input asp-for="FechaInicio" class="form-control" type="date"/>
                 <span asp-validation-for="FechaInicio" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="FechaFin" class="control-label"></label>
-                <input asp-for="FechaFin" class="form-control" />
+                <input asp-for="FechaFin" class="form-control" type="date"/>
                 <span asp-validation-for="FechaFin" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Estado" class="control-label"></label>
-                <input asp-for="Estado" class="form-control" />
+                <select asp-for="Estado" class="form-control" asp-items="ViewBag.Estado"></select>
                 <span asp-validation-for="Estado" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
@@ -67,5 +75,35 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const preciosPlanes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.PreciosPlanes));
+        const planPersonalizado = @ViewBag.PlanPersonalizadoID ?? 0;
+
+        const selectPlan = document.getElementById("planSelect");
+        const inputPrecio = document.getElementById("precioInput");
+        const precioGroup = document.getElementById("precioGroup");
+
+        function actualizarPrecio() {
+            const planId = parseInt(selectPlan.value);
+
+            if (planId === planPersonalizado) {
+                precioGroup.style.display = "block";
+                inputPrecio.removeAttribute("readonly");
+                inputPrecio.value = "";
+            } else {
+                precioGroup.style.display = "none";
+                inputPrecio.setAttribute("readonly", true);
+                inputPrecio.value = preciosPlanes[planId]?.toFixed(2) ?? "";
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", actualizarPrecio);
+
+        selectPlan.addEventListener("change", actualizarPrecio);
+    </script>
 }
+

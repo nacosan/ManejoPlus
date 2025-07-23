@@ -1,140 +1,110 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using ManejoPlus.Models;
 
 namespace ManejoPlus.Controllers
 {
     public class MiembrosController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly HttpClient _httpClient;
+        private readonly ApplicationDbContext _context; 
+        private readonly string _apiUrl = "https://localhost:7149/api/Miembro"; 
 
-        public MiembrosController(ApplicationDbContext context)
+        public MiembrosController(IHttpClientFactory httpClientFactory, ApplicationDbContext context)
         {
+            _httpClient = httpClientFactory.CreateClient();
             _context = context;
         }
 
         // GET: Miembros
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Miembros.Include(m => m.Suscripcion);
-            return View(await applicationDbContext.ToListAsync());
+            var miembros = await _httpClient.GetFromJsonAsync<List<Miembro>>(_apiUrl);
+            return View(miembros);
         }
 
         // GET: Miembros/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var response = await _httpClient.GetAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode) return NotFound();
 
-            var miembro = await _context.Miembros
-                .Include(m => m.Suscripcion)
-                .FirstOrDefaultAsync(m => m.MiembroID == id);
-            if (miembro == null)
-            {
-                return NotFound();
-            }
-
+            var miembro = await response.Content.ReadFromJsonAsync<Miembro>();
             return View(miembro);
         }
 
         // GET: Miembros/Create
         public IActionResult Create()
         {
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId");
+            SetSelectLists();
             return View();
         }
 
         // POST: Miembros/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MiembroID,SubscriptionID,NombreMiembro,EmailOpcional,Rol,MontoAportado,ApplicationUserId")] Miembro miembro)
+        public async Task<IActionResult> Create(Miembro miembro)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(miembro);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                SetSelectLists();
+                return View(miembro);
             }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId", miembro.SubscriptionID);
-            return View(miembro);
+
+            var response = await _httpClient.PostAsJsonAsync(_apiUrl, miembro);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ModelState.AddModelError("", "Error al crear el miembro.");
+                SetSelectLists();
+                return View(miembro);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Miembros/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var miembro = await _httpClient.GetFromJsonAsync<Miembro>($"{_apiUrl}/{id}");
+            if (miembro == null) return NotFound();
 
-            var miembro = await _context.Miembros.FindAsync(id);
-            if (miembro == null)
-            {
-                return NotFound();
-            }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId", miembro.SubscriptionID);
+            SetSelectLists(miembro.SubscriptionID);
             return View(miembro);
         }
 
         // POST: Miembros/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MiembroID,SubscriptionID,NombreMiembro,EmailOpcional,Rol,MontoAportado,ApplicationUserId")] Miembro miembro)
+        public async Task<IActionResult> Edit(int id, Miembro miembro)
         {
-            if (id != miembro.MiembroID)
+            if (id != miembro.MiembroID) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                SetSelectLists(miembro.SubscriptionID);
+                return View(miembro);
             }
 
-            if (ModelState.IsValid)
+            var response = await _httpClient.PutAsJsonAsync($"{_apiUrl}/{id}", miembro);
+
+            if (!response.IsSuccessStatusCode)
             {
-                try
-                {
-                    _context.Update(miembro);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!MiembroExists(miembro.MiembroID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("", "Error al actualizar el miembro.");
+                SetSelectLists(miembro.SubscriptionID);
+                return View(miembro);
             }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId", miembro.SubscriptionID);
-            return View(miembro);
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Miembros/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var miembro = await _context.Miembros
-                .Include(m => m.Suscripcion)
-                .FirstOrDefaultAsync(m => m.MiembroID == id);
-            if (miembro == null)
-            {
-                return NotFound();
-            }
+            var miembro = await _httpClient.GetFromJsonAsync<Miembro>($"{_apiUrl}/{id}");
+            if (miembro == null) return NotFound();
 
             return View(miembro);
         }
@@ -144,19 +114,17 @@ namespace ManejoPlus.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var miembro = await _context.Miembros.FindAsync(id);
-            if (miembro != null)
+            var response = await _httpClient.DeleteAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode)
             {
-                _context.Miembros.Remove(miembro);
+                TempData["Error"] = "No se pudo eliminar el miembro.";
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool MiembroExists(int id)
+        private void SetSelectLists(int? selectedSubscriptionID = null)
         {
-            return _context.Miembros.Any(e => e.MiembroID == id);
+            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "ApplicationUserId", selectedSubscriptionID);
         }
     }
 }

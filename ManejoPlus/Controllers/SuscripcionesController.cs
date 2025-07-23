@@ -1,146 +1,116 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using ManejoPlus.Models;
 
 namespace ManejoPlus.Controllers
 {
     public class SuscripcionesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly HttpClient _httpClient;
+        private readonly ApplicationDbContext _context; 
+        private readonly string _apiUrl = "https://localhost:7149/api/Suscripcion"; 
 
-        public SuscripcionesController(ApplicationDbContext context)
+        public SuscripcionesController(IHttpClientFactory httpClientFactory, ApplicationDbContext context)
         {
+            _httpClient = httpClientFactory.CreateClient();
             _context = context;
         }
 
         // GET: Suscripciones
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Suscripciones.Include(s => s.Plan).Include(s => s.Plataforma);
-            return View(await applicationDbContext.ToListAsync());
+            var suscripciones = await _httpClient.GetFromJsonAsync<List<Suscripcion>>(_apiUrl);
+            return View(suscripciones);
         }
 
         // GET: Suscripciones/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var response = await _httpClient.GetAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode) return NotFound();
 
-            var suscripcion = await _context.Suscripciones
-                .Include(s => s.Plan)
-                .Include(s => s.Plataforma)
-                .FirstOrDefaultAsync(m => m.SubscriptionID == id);
-            if (suscripcion == null)
-            {
-                return NotFound();
-            }
-
+            var suscripcion = await response.Content.ReadFromJsonAsync<Suscripcion>();
             return View(suscripcion);
         }
 
         // GET: Suscripciones/Create
         public IActionResult Create()
         {
-            ViewData["PlanID"] = new SelectList(_context.Planes, "PlanID", "Nombre");
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre");
+            SetSelectLists();
             return View();
         }
 
         // POST: Suscripciones/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("SubscriptionID,PlataformaID,PlanID,ApplicationUserId,NombrePersonalizado,Tipo,Descripcion,FechaInicio,FechaFin,Estado")] Suscripcion suscripcion)
+        public async Task<IActionResult> Create(Suscripcion suscripcion)
         {
-            if (ModelState.IsValid)
+            if (suscripcion.Precio <= 0)
             {
-                _context.Add(suscripcion);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                suscripcion.Precio = _context.Planes
+                    .Where(p => p.PlanID == suscripcion.PlanID)
+                    .Select(p => p.Precio)
+                    .FirstOrDefault();
             }
-            ViewData["PlanID"] = new SelectList(_context.Planes, "PlanID", "Nombre", suscripcion.PlanID);
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", suscripcion.PlataformaID);
-            return View(suscripcion);
+
+            if (!ModelState.IsValid)
+            {
+                SetSelectLists();
+                return View(suscripcion);
+            }
+
+            var response = await _httpClient.PostAsJsonAsync(_apiUrl, suscripcion);
+            if (!response.IsSuccessStatusCode)
+            {
+                ModelState.AddModelError("", "Error al crear la suscripción.");
+                SetSelectLists();
+                return View(suscripcion);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Suscripciones/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var suscripcion = await _httpClient.GetFromJsonAsync<Suscripcion>($"{_apiUrl}/{id}");
+            if (suscripcion == null) return NotFound();
 
-            var suscripcion = await _context.Suscripciones.FindAsync(id);
-            if (suscripcion == null)
-            {
-                return NotFound();
-            }
-            ViewData["PlanID"] = new SelectList(_context.Planes, "PlanID", "Nombre", suscripcion.PlanID);
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", suscripcion.PlataformaID);
+            SetSelectLists(suscripcion.PlanID, suscripcion.PlataformaID, suscripcion.Estado);
             return View(suscripcion);
         }
 
         // POST: Suscripciones/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("SubscriptionID,PlataformaID,PlanID,ApplicationUserId,NombrePersonalizado,Tipo,Descripcion,FechaInicio,FechaFin,Estado")] Suscripcion suscripcion)
+        public async Task<IActionResult> Edit(int id, Suscripcion suscripcion)
         {
-            if (id != suscripcion.SubscriptionID)
+            if (id != suscripcion.SubscriptionID) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                SetSelectLists(suscripcion.PlanID, suscripcion.PlataformaID, suscripcion.Estado);
+                return View(suscripcion);
             }
 
-            if (ModelState.IsValid)
+            var response = await _httpClient.PutAsJsonAsync($"{_apiUrl}/{id}", suscripcion);
+            if (!response.IsSuccessStatusCode)
             {
-                try
-                {
-                    _context.Update(suscripcion);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!SuscripcionExists(suscripcion.SubscriptionID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("", "Error al actualizar la suscripción.");
+                SetSelectLists();
+                return View(suscripcion);
             }
-            ViewData["PlanID"] = new SelectList(_context.Planes, "PlanID", "Nombre", suscripcion.PlanID);
-            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", suscripcion.PlataformaID);
-            return View(suscripcion);
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Suscripciones/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var suscripcion = await _context.Suscripciones
-                .Include(s => s.Plan)
-                .Include(s => s.Plataforma)
-                .FirstOrDefaultAsync(m => m.SubscriptionID == id);
-            if (suscripcion == null)
-            {
-                return NotFound();
-            }
+            var suscripcion = await _httpClient.GetFromJsonAsync<Suscripcion>($"{_apiUrl}/{id}");
+            if (suscripcion == null) return NotFound();
 
             return View(suscripcion);
         }
@@ -150,19 +120,29 @@ namespace ManejoPlus.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var suscripcion = await _context.Suscripciones.FindAsync(id);
-            if (suscripcion != null)
+            var response = await _httpClient.DeleteAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode)
             {
-                _context.Suscripciones.Remove(suscripcion);
+                TempData["Error"] = "No se pudo eliminar la suscripción.";
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool SuscripcionExists(int id)
+        private void SetSelectLists(int? selectedPlanId = null, int? selectedPlataformaId = null, string estado = null)
         {
-            return _context.Suscripciones.Any(e => e.SubscriptionID == id);
+            var planes = _context.Planes
+                .Select(p => new
+                {
+                    p.PlanID,
+                    Texto = p.Nombre + " - " + p.Precio.ToString("0.00") + "€"
+                })
+                .ToList();
+
+            ViewData["PlanID"] = new SelectList(planes, "PlanID", "Texto", selectedPlanId);
+            ViewData["PlataformaID"] = new SelectList(_context.Plataformas, "PlataformaID", "Nombre", selectedPlataformaId);
+            ViewData["ApplicationUserId"] = new SelectList(_context.Users, "Id", "Nombre");
+            ViewData["Estado"] = new SelectList(new List<string> { "Activo", "Inactivo", "Cancelado" }, estado);
         }
     }
 }

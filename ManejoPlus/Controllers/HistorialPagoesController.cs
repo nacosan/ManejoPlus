@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
+using System.Net.Http.Json;
+using ManejoPlus.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,133 +9,107 @@ namespace ManejoPlus.Controllers
 {
     public class HistorialPagoesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly HttpClient _httpClient;
+        private readonly ApplicationDbContext _context; 
+        private readonly string _apiUrl = "https://localhost:7149/api/HistorialPago"; 
 
-        public HistorialPagoesController(ApplicationDbContext context)
+        public HistorialPagoesController(IHttpClientFactory httpClientFactory, ApplicationDbContext context)
         {
+            _httpClient = httpClientFactory.CreateClient();
             _context = context;
         }
 
         // GET: HistorialPagoes
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.HistorialPagos.Include(h => h.Suscripcion);
-            return View(await applicationDbContext.ToListAsync());
+            var planes = await _context.Planes
+                .Include(p => p.Plataforma)
+                .ToListAsync();
+
+            return View(planes); 
         }
 
+
         // GET: HistorialPagoes/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var response = await _httpClient.GetAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode) return NotFound();
 
-            var historialPago = await _context.HistorialPagos
-                .Include(h => h.Suscripcion)
-                .FirstOrDefaultAsync(m => m.PagoID == id);
-            if (historialPago == null)
-            {
-                return NotFound();
-            }
-
-            return View(historialPago);
+            var pago = await response.Content.ReadFromJsonAsync<HistorialPago>();
+            return View(pago);
         }
 
         // GET: HistorialPagoes/Create
         public IActionResult Create()
         {
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado");
+            CargarSuscripciones();
             return View();
         }
 
         // POST: HistorialPagoes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PagoID,SubscriptionID,FechaPago,Monto,Detalle")] HistorialPago historialPago)
+        public async Task<IActionResult> Create(HistorialPago historialPago)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(historialPago);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                CargarSuscripciones(historialPago.SubscriptionID);
+                return View(historialPago);
             }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", historialPago.SubscriptionID);
-            return View(historialPago);
+
+            var response = await _httpClient.PostAsJsonAsync(_apiUrl, historialPago);
+            if (!response.IsSuccessStatusCode)
+            {
+                ModelState.AddModelError("", "Error al crear el historial de pago.");
+                CargarSuscripciones(historialPago.SubscriptionID);
+                return View(historialPago);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: HistorialPagoes/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var pago = await _httpClient.GetFromJsonAsync<HistorialPago>($"{_apiUrl}/{id}");
+            if (pago == null) return NotFound();
 
-            var historialPago = await _context.HistorialPagos.FindAsync(id);
-            if (historialPago == null)
-            {
-                return NotFound();
-            }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", historialPago.SubscriptionID);
-            return View(historialPago);
+            CargarSuscripciones(pago.SubscriptionID);
+            return View(pago);
         }
 
         // POST: HistorialPagoes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PagoID,SubscriptionID,FechaPago,Monto,Detalle")] HistorialPago historialPago)
+        public async Task<IActionResult> Edit(int id, HistorialPago historialPago)
         {
-            if (id != historialPago.PagoID)
+            if (id != historialPago.PagoID) return NotFound();
+
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                CargarSuscripciones(historialPago.SubscriptionID);
+                return View(historialPago);
             }
 
-            if (ModelState.IsValid)
+            var response = await _httpClient.PutAsJsonAsync($"{_apiUrl}/{id}", historialPago);
+            if (!response.IsSuccessStatusCode)
             {
-                try
-                {
-                    _context.Update(historialPago);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!HistorialPagoExists(historialPago.PagoID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("", "Error al actualizar el historial de pago.");
+                CargarSuscripciones(historialPago.SubscriptionID);
+                return View(historialPago);
             }
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", historialPago.SubscriptionID);
-            return View(historialPago);
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: HistorialPagoes/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var pago = await _httpClient.GetFromJsonAsync<HistorialPago>($"{_apiUrl}/{id}");
+            if (pago == null) return NotFound();
 
-            var historialPago = await _context.HistorialPagos
-                .Include(h => h.Suscripcion)
-                .FirstOrDefaultAsync(m => m.PagoID == id);
-            if (historialPago == null)
-            {
-                return NotFound();
-            }
-
-            return View(historialPago);
+            return View(pago);
         }
 
         // POST: HistorialPagoes/Delete/5
@@ -144,19 +117,17 @@ namespace ManejoPlus.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var historialPago = await _context.HistorialPagos.FindAsync(id);
-            if (historialPago != null)
+            var response = await _httpClient.DeleteAsync($"{_apiUrl}/{id}");
+            if (!response.IsSuccessStatusCode)
             {
-                _context.HistorialPagos.Remove(historialPago);
+                TempData["Error"] = "No se pudo eliminar el historial.";
             }
-
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool HistorialPagoExists(int id)
+        private void CargarSuscripciones(int? seleccionada = null)
         {
-            return _context.HistorialPagos.Any(e => e.PagoID == id);
+            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", seleccionada);
         }
     }
 }
