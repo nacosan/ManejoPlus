@@ -20,3 +20,13 @@ html {
 body {
   margin-bottom: 60px;
 }
+.btn-outline-primary.bg-opacity-10 {
+    background-color: #e3f1fc !important;
+    color: #2196f3 !important;
+    border: none !important;
+}
+
+.btn-primary {
+    background-color: #2196f3 !important;
+    border: none !important;
+}
