@@ -11,7 +11,9 @@ public static class PlanEndpoints
 
         group.MapGet("/", async (ApplicationDbContext db) =>
         {
-            return await db.Planes.ToListAsync();
+            return await db.Planes
+                .Include(p => p.Plataforma) 
+                .ToListAsync();
         })
         .WithName("GetAllPlans")
         .WithOpenApi();

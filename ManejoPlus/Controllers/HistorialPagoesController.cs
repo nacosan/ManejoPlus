@@ -1,9 +1,8 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Json;
-using ManejoPlus.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using ManejoPlus.Models;
 
 namespace ManejoPlus.Controllers
 {
@@ -11,7 +10,7 @@ namespace ManejoPlus.Controllers
     {
         private readonly HttpClient _httpClient;
         private readonly ApplicationDbContext _context; 
-        private readonly string _apiUrl = "https://localhost:7149/api/HistorialPago"; 
+        private readonly string _apiUrl = "https://localhost:7149/api/HistorialPago";
 
         public HistorialPagoesController(IHttpClientFactory httpClientFactory, ApplicationDbContext context)
         {
@@ -22,13 +21,10 @@ namespace ManejoPlus.Controllers
         // GET: HistorialPagoes
         public async Task<IActionResult> Index()
         {
-            var planes = await _context.Planes
-                .Include(p => p.Plataforma)
-                .ToListAsync();
-
-            return View(planes); 
+            // Llamamos al endpoint de la API para traer los pagos
+            var pagos = await _httpClient.GetFromJsonAsync<List<HistorialPago>>(_apiUrl);
+            return View(pagos);
         }
-
 
         // GET: HistorialPagoes/Details/5
         public async Task<IActionResult> Details(int id)
@@ -43,7 +39,7 @@ namespace ManejoPlus.Controllers
         // GET: HistorialPagoes/Create
         public IActionResult Create()
         {
-            CargarSuscripciones();
+            SetSelectLists();
             return View();
         }
 
@@ -54,7 +50,7 @@ namespace ManejoPlus.Controllers
         {
             if (!ModelState.IsValid)
             {
-                CargarSuscripciones(historialPago.SubscriptionID);
+                SetSelectLists(historialPago.SubscriptionID);
                 return View(historialPago);
             }
 
@@ -62,7 +58,7 @@ namespace ManejoPlus.Controllers
             if (!response.IsSuccessStatusCode)
             {
                 ModelState.AddModelError("", "Error al crear el historial de pago.");
-                CargarSuscripciones(historialPago.SubscriptionID);
+                SetSelectLists(historialPago.SubscriptionID);
                 return View(historialPago);
             }
 
@@ -75,7 +71,7 @@ namespace ManejoPlus.Controllers
             var pago = await _httpClient.GetFromJsonAsync<HistorialPago>($"{_apiUrl}/{id}");
             if (pago == null) return NotFound();
 
-            CargarSuscripciones(pago.SubscriptionID);
+            SetSelectLists(pago.SubscriptionID);
             return View(pago);
         }
 
@@ -88,7 +84,7 @@ namespace ManejoPlus.Controllers
 
             if (!ModelState.IsValid)
             {
-                CargarSuscripciones(historialPago.SubscriptionID);
+                SetSelectLists(historialPago.SubscriptionID);
                 return View(historialPago);
             }
 
@@ -96,7 +92,7 @@ namespace ManejoPlus.Controllers
             if (!response.IsSuccessStatusCode)
             {
                 ModelState.AddModelError("", "Error al actualizar el historial de pago.");
-                CargarSuscripciones(historialPago.SubscriptionID);
+                SetSelectLists(historialPago.SubscriptionID);
                 return View(historialPago);
             }
 
@@ -120,14 +116,16 @@ namespace ManejoPlus.Controllers
             var response = await _httpClient.DeleteAsync($"{_apiUrl}/{id}");
             if (!response.IsSuccessStatusCode)
             {
-                TempData["Error"] = "No se pudo eliminar el historial.";
+                TempData["Error"] = "No se pudo eliminar el historial de pago.";
             }
             return RedirectToAction(nameof(Index));
         }
 
-        private void CargarSuscripciones(int? seleccionada = null)
+        // Método para cargar la lista desplegable de Suscripciones
+        private void SetSelectLists(int? selectedSubscriptionID = null)
         {
-            ViewData["SubscriptionID"] = new SelectList(_context.Suscripciones, "SubscriptionID", "NombrePersonalizado", seleccionada);
+            ViewData["SubscriptionID"] = new SelectList(
+                _context.Suscripciones, "SubscriptionID", "NombrePersonalizado", selectedSubscriptionID);
         }
     }
 }

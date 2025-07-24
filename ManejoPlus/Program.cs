@@ -87,4 +87,14 @@ app.MapPlanEndpoints();
 
 app.MapHistorialPagoEndpoints();
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var adminEmail = "nacho@nacho.com"; 
+    await SeedRoles.Initialize(services, adminEmail);
+}
+
+
+
 app.Run();

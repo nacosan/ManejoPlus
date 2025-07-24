@@ -8,14 +8,15 @@ public static class HistorialPagoEndpoints
     public static void MapHistorialPagoEndpoints (this IEndpointRouteBuilder routes)
     {
         var group = routes.MapGroup("/api/HistorialPago").WithTags(nameof(HistorialPago));
-
         group.MapGet("/", async (ApplicationDbContext db) =>
         {
-            return await db.HistorialPagos.ToListAsync();
+            return await db.HistorialPagos
+                .Include(h => h.Suscripcion)
+                    .ThenInclude(s => s.Plataforma)
+                .ToListAsync();
         })
         .WithName("GetAllHistorialPagos")
         .WithOpenApi();
-
         group.MapGet("/{id}", async Task<Results<Ok<HistorialPago>, NotFound>> (int id, ApplicationDbContext db) =>
         {
             return await db.HistorialPagos.AsNoTracking()
