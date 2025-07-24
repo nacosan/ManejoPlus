@@ -1,69 +1,88 @@
 ﻿@page
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Crea tu cuenta";
 }
 
-<h1>@ViewData["Title"]</h1>
+<style>
+    /* Puedes trasladar esto a site.css si prefieres */
+    .register-card {
+        max-width: 420px;
+        margin: 48px auto;
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 2px 16px 0 rgba(33, 150, 243, 0.10);
+        padding: 40px 30px 32px 30px;
+    }
 
-<div class="row">
-    <div class="col-md-4">
-        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Nombre" class="form-control" autocomplete="name" aria-required="true" placeholder="Nombre completo" />
-                <label asp-for="Input.Nombre">Nombre completo</label>
-                <span asp-validation-for="Input.Nombre" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email">Email</label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.Password">Password</label>
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
-                <label asp-for="Input.ConfirmPassword">Confirm Password</label>
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </form>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+    .register-title {
+        font-weight: 800;
+        font-size: 2.05rem;
+        margin-bottom: 0.2rem;
+        color: #2196f3;
+    }
+
+    .register-desc {
+        color: #7986a0;
+        margin-bottom: 1.5rem;
+        font-size: 1.09rem;
+    }
+
+    .register-btn {
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 1.08rem;
+        background: #2196f3;
+        border: none;
+    }
+
+        .register-btn:hover {
+            background: #1769aa;
+        }
+
+    .register-link {
+        font-size: 0.97rem;
+        color: #2196f3;
+        text-decoration: none;
+        margin-top: 0.8rem;
+        display: inline-block;
+    }
+
+        .register-link:hover {
+            text-decoration: underline;
+        }
+</style>
+
+<div class="register-card">
+    <h2 class="register-title text-center">Crea una cuenta</h2>
+    <p class="register-desc text-center">Unifica y gestiona todas tus suscripciones en un solo lugar</p>
+    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" autocomplete="off">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="Input.Nombre" class="form-control" autocomplete="name" placeholder="Nombre completo" />
+            <label asp-for="Input.Nombre">Nombre completo</label>
+            <span asp-validation-for="Input.Nombre" class="text-danger"></span>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="nombre@email.com" />
+            <label asp-for="Input.Email">Correo electrónico</label>
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="Contraseña" type="password" />
+            <label asp-for="Input.Password">Contraseña</label>
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+        <div class="form-floating mb-3">
+            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="Repite tu contraseña" type="password" />
+            <label asp-for="Input.ConfirmPassword">Repite la contraseña</label>
+            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+        </div>
+        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg register-btn mb-2">Registrarse</button>
+    </form>
+    <div class="text-center">
+        <span>¿Ya tienes una cuenta?</span> <a asp-page="./Login" class="register-link">Inicia sesión</a>
     </div>
 </div>
 
