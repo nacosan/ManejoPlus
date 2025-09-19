@@ -2,21 +2,21 @@
 
 #nullable disable
 
-namespace ManejoPlus.Data.Migrations
+namespace ManejoPlus.Migrations
 {
     /// <inheritdoc />
-    public partial class mssqlonprem_migration_300 : Migration
+    public partial class mssqlonprem_migration_791 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-           
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-          
+
         }
     }
 }

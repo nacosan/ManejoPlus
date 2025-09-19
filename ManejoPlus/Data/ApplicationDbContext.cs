@@ -1,7 +1,5 @@
-﻿using System.Numerics;
-using ManejoPlus.Models;
+﻿using ManejoPlus.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
@@ -15,4 +13,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Miembro> Miembros { get; set; }
     public DbSet<HistorialPago> HistorialPagos { get; set; }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Plan>()
+            .Property(p => p.Precio)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Miembro>()
+            .Property(m => m.MontoAportado)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<HistorialPago>()
+            .Property(h => h.Monto)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Suscripcion>()
+            .Property(s => s.Precio)
+            .HasPrecision(18, 2);
+    }
 }

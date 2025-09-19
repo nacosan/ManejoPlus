@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -17,8 +18,9 @@ public class Plan
     public string Nombre { get; set; }
 
     [Required]
-    [Range(0, 9999.99)]
+    [Precision(18, 2)]
     public decimal Precio { get; set; }
+
 
     [Required]
     [StringLength(20)]

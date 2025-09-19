@@ -8,18 +8,39 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ManejoPlus.styles.css" asp-append-version="true" />
 </head>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow">
-            <div class="container-fluid">
-                <a class="navbar-brand fw-bold" style="margin-right:0;" asp-controller="Home" asp-action="Index">ManejoPlus</a>
-                <div class="d-flex ms-auto gap-2">
+           
+
+            <div class="d-flex ms-auto gap-2">
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    var user = await UserManager.GetUserAsync(User);
+                    <div class="navbar-text me-2 text-primary fw-normal">
+                        @user?.Email
+                    </div>
+                    <form class="d-inline" asp-area="Identity" asp-page="/Account/Logout" method="post">
+                        <button type="submit" class="btn btn-outline-danger px-3 rounded-pill fw-normal" style="background-color: #f3e3e3; border: none;">
+                            Cerrar sesión
+                        </button>
+                    </form>
+                }
+                else
+                {
                     <a class="btn btn-outline-primary bg-opacity-10 px-3 rounded-pill text-primary fw-normal"
                        style="background-color: #e3f1fc; border: none;" href="/Identity/Account/Login">Iniciar Sesión</a>
                     <a class="btn btn-primary px-3 rounded-pill text-white fw-normal"
                        style="background-color: #2196f3; border: none;" href="/Identity/Account/Register">Registrarse</a>
-                </div>
+                }
             </div>
+
+
         </nav>
     </header>
 

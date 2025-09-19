@@ -8,11 +8,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ManejoPlus.Data.Migrations
+namespace ManejoPlus.Migrations.IdentityOnlyDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250721153601_mssql.onprem_migration_300")]
-    partial class mssqlonprem_migration_300
+    [Migration("20250917233028_mssql.onprem_migration_263")]
+    partial class mssqlonprem_migration_263
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

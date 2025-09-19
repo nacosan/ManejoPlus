@@ -3,16 +3,19 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ManejoPlus.Data.Migrations
+namespace ManejoPlus.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917232209_mssql.onprem_migration_791")]
+    partial class mssqlonprem_migration_791
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20,6 +23,35 @@ namespace ManejoPlus.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("HistorialPago", b =>
+                {
+                    b.Property<int>("PagoID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PagoID"));
+
+                    b.Property<string>("Detalle")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("FechaPago")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SubscriptionID")
+                        .HasColumnType("int");
+
+                    b.HasKey("PagoID");
+
+                    b.HasIndex("SubscriptionID");
+
+                    b.ToTable("HistorialPagos");
+                });
 
             modelBuilder.Entity("ManejoPlus.Models.ApplicationUser", b =>
                 {
@@ -223,6 +255,173 @@ namespace ManejoPlus.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Miembro", b =>
+                {
+                    b.Property<int>("MiembroID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MiembroID"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmailOpcional")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("MontoAportado")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("NombreMiembro")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("SubscriptionID")
+                        .HasColumnType("int");
+
+                    b.HasKey("MiembroID");
+
+                    b.HasIndex("SubscriptionID");
+
+                    b.ToTable("Miembros");
+                });
+
+            modelBuilder.Entity("Plan", b =>
+                {
+                    b.Property<int>("PlanID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlanID"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Periodicidad")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("PlataformaID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("PlanID");
+
+                    b.HasIndex("PlataformaID");
+
+                    b.ToTable("Planes");
+                });
+
+            modelBuilder.Entity("Plataforma", b =>
+                {
+                    b.Property<int>("PlataformaID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PlataformaID"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool?>("EsPersonalizada")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("PlataformaID");
+
+                    b.ToTable("Plataformas");
+                });
+
+            modelBuilder.Entity("Suscripcion", b =>
+                {
+                    b.Property<int>("SubscriptionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubscriptionID"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NombrePersonalizado")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PlanID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PlataformaID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("SubscriptionID");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("PlanID");
+
+                    b.HasIndex("PlataformaID");
+
+                    b.ToTable("Suscripciones");
+                });
+
+            modelBuilder.Entity("HistorialPago", b =>
+                {
+                    b.HasOne("Suscripcion", "Suscripcion")
+                        .WithMany("HistorialPagos")
+                        .HasForeignKey("SubscriptionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Suscripcion");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -272,6 +471,74 @@ namespace ManejoPlus.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Miembro", b =>
+                {
+                    b.HasOne("Suscripcion", "Suscripcion")
+                        .WithMany("Miembros")
+                        .HasForeignKey("SubscriptionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Suscripcion");
+                });
+
+            modelBuilder.Entity("Plan", b =>
+                {
+                    b.HasOne("Plataforma", "Plataforma")
+                        .WithMany("Planes")
+                        .HasForeignKey("PlataformaID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Plataforma");
+                });
+
+            modelBuilder.Entity("Suscripcion", b =>
+                {
+                    b.HasOne("ManejoPlus.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Plan", "Plan")
+                        .WithMany("Suscripciones")
+                        .HasForeignKey("PlanID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Plataforma", "Plataforma")
+                        .WithMany("Suscripciones")
+                        .HasForeignKey("PlataformaID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("Plataforma");
+                });
+
+            modelBuilder.Entity("Plan", b =>
+                {
+                    b.Navigation("Suscripciones");
+                });
+
+            modelBuilder.Entity("Plataforma", b =>
+                {
+                    b.Navigation("Planes");
+
+                    b.Navigation("Suscripciones");
+                });
+
+            modelBuilder.Entity("Suscripcion", b =>
+                {
+                    b.Navigation("HistorialPagos");
+
+                    b.Navigation("Miembros");
                 });
 #pragma warning restore 612, 618
         }

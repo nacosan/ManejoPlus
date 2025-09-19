@@ -1,0 +1,70 @@
+﻿@page
+@model LogoutModel
+@{
+    ViewData["Title"] = "Cerrar sesión";
+}
+<style>
+    .logout-card {
+        max-width: 420px;
+        margin: 56px auto 40px auto;
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 2px 16px 0 rgba(33, 150, 243, 0.10);
+        padding: 40px 30px 32px 30px;
+        text-align: center;
+    }
+    .logout-title {
+        font-weight: 800;
+        font-size: 2.05rem;
+        margin-bottom: 0.5rem;
+        color: #2196f3;
+    }
+    .logout-desc {
+        color: #7986a0;
+        margin-bottom: 1.8rem;
+        font-size: 1.1rem;
+    }
+    .logout-btn, .home-btn {
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding: 12px 30px;
+        cursor: pointer;
+        border: none;
+        transition: background 0.3s ease;
+        margin: 0 8px;
+        display: inline-block;
+        text-decoration: none;
+        color: white;
+    }
+    .logout-btn {
+        background: #2196f3;
+    }
+    .logout-btn:hover {
+        background: #1769aa;
+    }
+    .home-btn {
+        background: #6c757d;
+    }
+    .home-btn:hover {
+        background: #565e64;
+    }
+</style>
+
+<div class="logout-card">
+    <h2 class="logout-title">@ViewData["Title"]</h2>
+
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post" class="mb-3">
+            <p class="logout-desc">¿Quieres cerrar sesión?</p>
+            <button type="submit" class="logout-btn">Cerrar sesión</button>
+        </form>
+    }
+    else
+    {
+        <p class="logout-desc">Has cerrado sesión correctamente.</p>
+    }
+
+    <a class="home-btn" asp-area="" asp-controller="Home" asp-action="Index">Volver al inicio</a>
+</div>
