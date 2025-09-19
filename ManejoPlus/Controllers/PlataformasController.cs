@@ -8,7 +8,7 @@ namespace ManejoPlus.Controllers
     public class PlataformasController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiUrl = "https://localhost:7149/api/Plataforma"; // Cambia el puerto si es necesario
+        private readonly string _apiUrl = "http://localhost:5276/api/Plataforma"; 
 
         public PlataformasController(IHttpClientFactory httpClientFactory)
         {

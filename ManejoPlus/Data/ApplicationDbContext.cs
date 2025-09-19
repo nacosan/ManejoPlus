@@ -29,8 +29,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .Property(h => h.Monto)
             .HasPrecision(18, 2);
 
-        modelBuilder.Entity<Suscripcion>()
-            .Property(s => s.Precio)
-            .HasPrecision(18, 2);
+      
     }
 }

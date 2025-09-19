@@ -10,7 +10,7 @@ namespace ManejoPlus.Controllers
     {
         private readonly HttpClient _httpClient;
         private readonly ApplicationDbContext _context; 
-        private readonly string _apiUrl = "https://localhost:7149/api/Plan"; 
+        private readonly string _apiUrl = "http://localhost:5276/api/Plan"; 
 
         public PlanesController(IHttpClientFactory httpClientFactory, ApplicationDbContext context)
         {

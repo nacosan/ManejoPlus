@@ -37,10 +37,6 @@ public class Suscripcion
     public DateTime? FechaFin { get; set; }
 
     [Required]
-    [Range(0.01, 9999.99)]
-    public decimal Precio { get; set; }
-
-    [Required]
     [StringLength(20)]
     public string Estado { get; set; }
 

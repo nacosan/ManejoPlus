@@ -59,6 +59,11 @@ else
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await SeedRoles.Initialize(services, "nacho@nacho.com");
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

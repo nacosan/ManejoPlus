@@ -45,7 +45,6 @@ public static class SuscripcionEndpoints
             existente.Descripcion = suscripcion.Descripcion;
             existente.FechaInicio = suscripcion.FechaInicio;
             existente.FechaFin = suscripcion.FechaFin;
-            existente.Precio = suscripcion.Precio;
             existente.Estado = suscripcion.Estado;
 
             await db.SaveChangesAsync();

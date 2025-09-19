@@ -88,16 +88,16 @@ VALUES
 INSERT INTO Suscripciones 
 (PlataformaID, PlanID, ApplicationUserId, NombrePersonalizado, Tipo, Descripcion, FechaInicio, FechaFin, Estado)
 VALUES 
-(1, 3, '88f7cab4-824a-48b4-896d-752d78dc7ad9', 'Netflix Premium', 'compartida', 'Compartida con amigos', '2025-01-01', NULL, 'activa'),
-(2, 4, '88f7cab4-824a-48b4-896d-752d78dc7ad9', 'Spotify Personal', 'individual', 'Uso personal', '2025-02-01', NULL, 'activa'),
-(3, 6, '88f7cab4-824a-48b4-896d-752d78dc7ad9', 'Disney Año completo', 'individual', 'Prueba anual', '2025-03-01', NULL, 'activa'),
-(4, 7, '88f7cab4-824a-48b4-896d-752d78dc7ad9', 'CustomTV Prueba', 'individual', 'Plan personalizado', '2025-04-01', NULL, 'activa');
+(1, 3, '147dacbf-b676-45d9-a6c8-c1976a4e29d5', 'Netflix Premium', 'compartida', 'Compartida con amigos', '2025-01-01', NULL, 'activa'),
+(2, 4, '147dacbf-b676-45d9-a6c8-c1976a4e29d5', 'Spotify Personal', 'individual', 'Uso personal', '2025-02-01', NULL, 'activa'),
+(3, 6, '147dacbf-b676-45d9-a6c8-c1976a4e29d5', 'Disney Año completo', 'individual', 'Prueba anual', '2025-03-01', NULL, 'activa'),
+(4, 7, '147dacbf-b676-45d9-a6c8-c1976a4e29d5', 'CustomTV Prueba', 'individual', 'Plan personalizado', '2025-04-01', NULL, 'activa');
 
 -- Insertar Miembros (solo 1 con datos completos, los demás con valores null)
 INSERT INTO Miembros (
     SubscriptionID, NombreMiembro, EmailOpcional, Rol, MontoAportado, ApplicationUserId)
 VALUES
-(1, 'Juan Martín', 'juan@correo.com', 'admin', 15.99, '88f7cab4-824a-48b4-896d-752d78dc7ad9'),
+(1, 'Juan Martín', 'nacho@nacho.com', 'admin', 15.99, '147dacbf-b676-45d9-a6c8-c1976a4e29d5'),
 (1, 'Participante 2', NULL, 'participante', NULL, NULL),
 (2, 'Participante 3', NULL, 'admin', NULL, NULL),
 (3, 'Participante 4', NULL, 'admin', NULL, NULL),
